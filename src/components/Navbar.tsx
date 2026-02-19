@@ -43,6 +43,12 @@ export default function Navbar() {
                         >
                             Sign Up
                         </Link>
+                        <Link
+                            href="/admin/upload"
+                            className="bg-red-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-red-700 transition-colors uppercase tracking-wide"
+                        >
+                            Upload
+                        </Link>
                     </div>
                     {/* Mobile menu placeholder - can be expanded later */}
                     <div className="md:hidden">
