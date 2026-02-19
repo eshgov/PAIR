@@ -33,15 +33,9 @@ export default function Navbar() {
                         ))}
                         <Link
                             href="/login"
-                            className="text-sm font-medium text-gray-900 hover:text-gray-500 transition-colors uppercase tracking-wide"
-                        >
-                            Login
-                        </Link>
-                        <Link
-                            href="/signup"
                             className="bg-black text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-gray-800 transition-colors uppercase tracking-wide"
                         >
-                            Sign Up
+                            Login
                         </Link>
                         <Link
                             href="/admin/upload"
