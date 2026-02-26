@@ -1,8 +1,22 @@
+"use client";
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 
 export default function Navbar() {
+    const [isAdmin, setIsAdmin] = useState(false);
+
+    useEffect(() => {
+        const checkAdmin = () => {
+            setIsAdmin(localStorage.getItem('isAdmin') === 'true');
+        };
+
+        checkAdmin();
+        window.addEventListener('auth-change', checkAdmin);
+
+        return () => window.removeEventListener('auth-change', checkAdmin);
+    }, []);
+
     const navItems = [
         { name: 'News', href: '/news' },
         { name: 'Technical', href: '/technical' },
@@ -31,18 +45,32 @@ export default function Navbar() {
                                 {item.name}
                             </Link>
                         ))}
-                        <Link
-                            href="/login"
-                            className="bg-black text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-gray-800 transition-colors uppercase tracking-wide"
-                        >
-                            Login
-                        </Link>
-                        <Link
-                            href="/admin/upload"
-                            className="bg-red-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-red-700 transition-colors uppercase tracking-wide"
-                        >
-                            Upload
-                        </Link>
+                        {isAdmin ? (
+                            <button
+                                onClick={() => {
+                                    localStorage.removeItem('isAdmin');
+                                    window.dispatchEvent(new Event('auth-change'));
+                                }}
+                                className="bg-black text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-gray-800 transition-colors uppercase tracking-wide"
+                            >
+                                Logout
+                            </button>
+                        ) : (
+                            <Link
+                                href="/login"
+                                className="bg-black text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-gray-800 transition-colors uppercase tracking-wide"
+                            >
+                                Login
+                            </Link>
+                        )}
+                        {isAdmin && (
+                            <Link
+                                href="/admin/upload-pdf"
+                                className="bg-red-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-red-700 transition-colors uppercase tracking-wide"
+                            >
+                                Upload PDF
+                            </Link>
+                        )}
                     </div>
                     {/* Mobile menu placeholder - can be expanded later */}
                     <div className="md:hidden">

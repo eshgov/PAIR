@@ -14,6 +14,14 @@ export default function Login() {
         e.preventDefault();
         setError('');
 
+        if (email === 'admin' && password === 'princetonaireview') {
+            localStorage.setItem('isAdmin', 'true');
+            window.dispatchEvent(new Event('auth-change'));
+            alert('Admin login successful!');
+            router.push('/admin/upload-pdf');
+            return;
+        }
+
         // TODO: Implement actual login logic here
         console.log('Logging in user:', { email, password });
 
@@ -40,13 +48,13 @@ export default function Login() {
                     <div className="rounded-md shadow-sm -space-y-px">
                         <div className="mb-4">
                             <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
-                                Email Address
+                                Email Address / Username
                             </label>
                             <input
                                 id="email"
                                 name="email"
-                                type="email"
-                                autoComplete="email"
+                                type="text"
+                                autoComplete="username"
                                 required
                                 value={email}
                                 onChange={(e) => setEmail(e.target.value)}
