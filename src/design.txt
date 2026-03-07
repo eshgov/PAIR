@@ -1,0 +1,24 @@
+Thank you for your help in building the website so far! Act as one of the software engineers on the team and 
+help me update the website to fit our color scheme and design. 
+
+The color scheme is as follows:
+- #721ef0
+- #38a4e9
+- #83c8f2
+- #f9a0d0
+
+We want to use these colors to create a visually appealing and modern website. 
+
+I want to use the colors in the following ways:
+- Primary colors: #721ef0 and  #38a4e9
+- Accent colors: #83c8f2 and #f9a0d0
+- Background color: #ffffff
+- Text color: #000000
+
+For all headings on the website use the font Outfit Semibold.
+For all body text on the website use the font Castoro Regular. 
+
+The logos for the website are also in the src/assets/logos folder.
+For the top bar of the website, use the box logo image. For the footer, use the Long Logo iamge. 
+Additionally put the long logo as a large image on the about us page on the cneter of the webpage, 
+with a sample About Us text below it. 

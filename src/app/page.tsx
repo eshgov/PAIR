@@ -64,9 +64,14 @@ export default function Home() {
             />
           </div>
 
-          {/* Top Stories Sidebar */}
+          {/* Opinion Sidebar */}
           <div className="flex flex-col space-y-8">
-            <h2 className="text-2xl font-bold border-b-2 border-black pb-2">Opinion</h2>
+            <h2
+              className="text-2xl font-bold border-b-2 pb-2"
+              style={{ borderColor: '#721ef0' }}
+            >
+              Opinion
+            </h2>
             {opinionPieces.map((article, index) => (
               <ArticleCard key={index} {...article} />
             ))}
@@ -76,7 +81,12 @@ export default function Home() {
 
       {/* Secondary Grid */}
       <section>
-        <h2 className="text-2xl font-bold border-b-2 border-black pb-2 mb-6">Latest Stories</h2>
+        <h2
+          className="text-2xl font-bold border-b-2 pb-2 mb-6"
+          style={{ borderColor: '#721ef0' }}
+        >
+          Latest Stories
+        </h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           {secondaryArticles.map((article, index) => (
             <ArticleCard key={index} {...article} />
