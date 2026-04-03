@@ -1,14 +1,22 @@
 "use client";
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { isValidAuthor } from '@/lib/authorizedAuthors';
 
 export default function Login() {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
     const router = useRouter();
+
+    useEffect(() => {
+        const searchParams = new URLSearchParams(window.location.search);
+        if (searchParams.get('error') === 'unauthorized_author') {
+            setError('You must be logged in as an authorized author to access the submission form.');
+        }
+    }, []);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -22,12 +30,22 @@ export default function Login() {
             return;
         }
 
-        // TODO: Implement actual login logic here
-        console.log('Logging in user:', { email, password });
+        if (isValidAuthor(email)) {
+            localStorage.setItem('isAuthorLoggedIn', 'true');
+            localStorage.setItem('authorName', email);
+            window.dispatchEvent(new Event('auth-change'));
+            alert('Author login successful!');
+            router.push('/submit');
+            return;
+        }
 
-        // For now, just simulate a successful login
-        alert('Login successful! (Backend implementation pending)');
-        // router.push('/'); // Redirect to home page after login
+        // Simulate normal user login for any other email
+        localStorage.setItem('isNormalUserLoggedIn', 'true');
+        localStorage.setItem('userEmail', email);
+        window.dispatchEvent(new Event('auth-change'));
+        console.log('Logging in normal user:', { email, password });
+        alert('Login successful! Redirecting to homepage...');
+        router.push('/');
     };
 
     return (
@@ -71,7 +89,6 @@ export default function Login() {
                                 name="password"
                                 type="password"
                                 autoComplete="current-password"
-                                required
                                 value={password}
                                 onChange={(e) => setPassword(e.target.value)}
                                 className="appearance-none rounded-md relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-black focus:border-black focus:z-10 sm:text-sm"
