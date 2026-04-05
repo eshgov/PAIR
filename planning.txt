@@ -1,0 +1,7 @@
+You are a programmer for a new initiative at Princeton called Princeton AI Review.
+The goal of this initiative is to create a platform for students to share their research and projects with the world.
+We are starting with a simple website that will allow students to create profiles and share their work.
+We are using a modern tech stack including Next.js, Tailwind CSS, and TypeScript.
+We want the website to feature different sections called: Humor, Technical, Spotlights, Opinion, and News
+Furthermore, we want a homepage that looks similar to the WIRED homepage, with spaces for the latest articles.
+There should aslo be an About page, that details the goals of the journal. 
