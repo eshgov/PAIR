@@ -3,8 +3,11 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { isValidAuthorNameParts } from '@/lib/authorizedAuthors';
 
 export default function Signup() {
+    const [firstName, setFirstName] = useState('');
+    const [lastName, setLastName] = useState('');
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
@@ -27,7 +30,12 @@ export default function Signup() {
 
         // TODO: Implement actual registration logic here
         // const response = await fetch('/api/register', { ... });
-        console.log('Registering user:', { email, password });
+        console.log('Registering user:', { firstName, lastName, email, password });
+
+        if (isValidAuthorNameParts(firstName, lastName)) {
+            router.push('/signup/author');
+            return;
+        }
 
         // For now, just redirect to the home page or login page
         // router.push('/login');
@@ -47,6 +55,36 @@ export default function Signup() {
                 </div>
                 <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
                     <div className="rounded-md shadow-sm -space-y-px">
+                        <div className="mb-4">
+                            <label htmlFor="firstName" className="block text-sm font-medium text-gray-700 mb-1">
+                                First Name
+                            </label>
+                            <input
+                                id="firstName"
+                                name="firstName"
+                                type="text"
+                                required
+                                value={firstName}
+                                onChange={(e) => setFirstName(e.target.value)}
+                                className="appearance-none rounded-md relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-black focus:border-black focus:z-10 sm:text-sm"
+                                placeholder="First Name"
+                            />
+                        </div>
+                        <div className="mb-4">
+                            <label htmlFor="lastName" className="block text-sm font-medium text-gray-700 mb-1">
+                                Last Name
+                            </label>
+                            <input
+                                id="lastName"
+                                name="lastName"
+                                type="text"
+                                required
+                                value={lastName}
+                                onChange={(e) => setLastName(e.target.value)}
+                                className="appearance-none rounded-md relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-black focus:border-black focus:z-10 sm:text-sm"
+                                placeholder="Last Name"
+                            />
+                        </div>
                         <div className="mb-4">
                             <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
                                 Email Address
