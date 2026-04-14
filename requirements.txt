@@ -18,3 +18,5 @@ six==1.17.0
 sqlparse==0.5.5
 urllib3==2.6.3
 django-cors-headers>=4.5.0
+dj-rest-auth>=6.0.0
+django-allauth>=0.61.1
