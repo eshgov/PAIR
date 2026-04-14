@@ -1,7 +1,14 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { createArticle, fetchWithAuth } from "@/lib/api";
+import { API_BASE_URL } from "@/lib/apiClient";
+
+interface Author {
+  id: number;
+  full_name: string;
+  email: string;
+}
 
 export default function ArticleForm() {
   const [formData, setFormData] = useState({
@@ -24,6 +31,38 @@ export default function ArticleForm() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
+
+  // Author autocomplete
+  const [allAuthors, setAllAuthors] = useState<Author[]>([]);
+  const [authorQuery, setAuthorQuery] = useState('');
+  const [selectedAuthorId, setSelectedAuthorId] = useState<number | null>(null);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const authorRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    fetch(`${API_BASE_URL}/api/authors/`)
+      .then(res => res.json())
+      .then(data => {
+        const list = Array.isArray(data) ? data : Array.isArray(data.results) ? data.results : [];
+        console.log('[ArticleForm] authors loaded:', list.length, list);
+        setAllAuthors(list);
+      })
+      .catch(err => console.error('[ArticleForm] failed to fetch authors:', err));
+  }, []);
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (authorRef.current && !authorRef.current.contains(e.target as Node)) {
+        setShowSuggestions(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const authorSuggestions = authorQuery.length > 0
+    ? allAuthors.filter(a => a.full_name.toLowerCase().includes(authorQuery.toLowerCase()))
+    : [];
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
@@ -117,9 +156,40 @@ export default function ArticleForm() {
         <section className="space-y-6">
           <h2 className="text-2xl font-semibold text-gray-800 border-b pb-2">1. Author Selection</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
+            <div ref={authorRef} className="relative">
               <label className="block text-sm font-medium text-gray-700 mb-1">Primary Author</label>
-              <input type="text" name="primaryAuthor" value={formData.primaryAuthor} onChange={handleChange} placeholder="Search author database..." className="block w-full rounded-md p-3 border border-gray-300" required />
+              <input
+                type="text"
+                placeholder="Search author database..."
+                value={authorQuery}
+                onChange={e => { setAuthorQuery(e.target.value); setSelectedAuthorId(null); setShowSuggestions(true); }}
+                onFocus={() => setShowSuggestions(true)}
+                className="block w-full rounded-md p-3 border border-gray-300"
+                required={!selectedAuthorId}
+              />
+              {showSuggestions && authorSuggestions.length > 0 && (
+                <ul className="absolute z-10 w-full bg-white border border-gray-200 rounded-md shadow-lg mt-1 max-h-48 overflow-y-auto">
+                  {authorSuggestions.map(author => (
+                    <li
+                      key={author.id}
+                      onMouseDown={() => {
+                        setAuthorQuery(author.full_name);
+                        setSelectedAuthorId(author.id);
+                        setShowSuggestions(false);
+                      }}
+                      className="px-4 py-2 hover:bg-gray-100 cursor-pointer text-sm"
+                    >
+                      <span className="font-medium">{author.full_name}</span>
+                      <span className="text-gray-400 ml-2">{author.email}</span>
+                    </li>
+                  ))}
+                </ul>
+              )}
+              {showSuggestions && authorQuery.length > 0 && authorSuggestions.length === 0 && (
+                <div className="absolute z-10 w-full bg-white border border-gray-200 rounded-md shadow-lg mt-1 px-4 py-2 text-sm text-gray-400">
+                  No authors found.
+                </div>
+              )}
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Co-authors</label>
