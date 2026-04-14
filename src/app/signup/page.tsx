@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { isValidAuthorNameParts } from '@/lib/authorizedAuthors';
+import { registerAction } from '@/app/actions/auth';
 
 export default function Signup() {
     const [firstName, setFirstName] = useState('');
@@ -28,18 +29,28 @@ export default function Signup() {
             return;
         }
 
-        // TODO: Implement actual registration logic here
-        // const response = await fetch('/api/register', { ... });
-        console.log('Registering user:', { firstName, lastName, email, password });
+        const formData = new FormData();
+        formData.append("firstName", firstName);
+        formData.append("lastName", lastName);
+        formData.append("email", email);
+        formData.append("password", password);
+
+        // Call our server action
+        const result = await registerAction(formData);
+        
+        if (!result.success) {
+            setError(result.error || "Failed to register.");
+            return;
+        }
+
+        console.log('Registered user successfully via Backend.');
 
         if (isValidAuthorNameParts(firstName, lastName)) {
             router.push('/signup/author');
             return;
         }
 
-        // For now, just redirect to the home page or login page
-        // router.push('/login');
-        alert('Account creation successful! (Backend implementation pending)');
+        router.push('/profile');
     };
 
     return (

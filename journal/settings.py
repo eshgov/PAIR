@@ -21,6 +21,11 @@ DEBUG = os.environ.get("DEBUG", "False") == "True"
 
 ALLOWED_HOSTS = ["pair-dj8z.onrender.com", "localhost", "127.0.0.1"]
 
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:3000",
+    "http://127.0.0.1:3000",
+]
+
 
 # Application definition
 
@@ -34,6 +39,7 @@ INSTALLED_APPS = [
     "submissions",
     "rest_framework",
     "rest_framework.authtoken",
+    "corsheaders",
 ]
 
 REST_FRAMEWORK = {
@@ -47,6 +53,7 @@ REST_FRAMEWORK = {
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
+    "corsheaders.middleware.CorsMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",

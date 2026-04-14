@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { isValidAuthor } from '@/lib/authorizedAuthors';
+import { loginAction } from '@/app/actions/auth';
 
 export default function Login() {
     const [email, setEmail] = useState('');
@@ -30,21 +31,36 @@ export default function Login() {
             return;
         }
 
+        const formData = new FormData();
+        formData.append("email", email);
+        formData.append("password", password);
+
+        const result = await loginAction(formData);
+
+        if (!result.success) {
+            setError(result.error || "Failed to login.");
+            return;
+        }
+
+        // Keep local storage logic for the UI if it relies on it currently
+        if (email === 'admin') {
+            localStorage.setItem('isAdmin', 'true');
+            window.dispatchEvent(new Event('auth-change'));
+            router.push('/admin/upload-pdf');
+            return;
+        }
+
         if (isValidAuthor(email)) {
             localStorage.setItem('isAuthorLoggedIn', 'true');
             localStorage.setItem('authorName', email);
             window.dispatchEvent(new Event('auth-change'));
-            alert('Author login successful!');
             router.push('/submit');
             return;
         }
 
-        // Simulate normal user login for any other email
         localStorage.setItem('isNormalUserLoggedIn', 'true');
         localStorage.setItem('userEmail', email);
         window.dispatchEvent(new Event('auth-change'));
-        console.log('Logging in normal user:', { email, password });
-        alert('Login successful! Redirecting to homepage...');
         router.push('/');
     };
 
