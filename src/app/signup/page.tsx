@@ -35,22 +35,29 @@ export default function Signup() {
         formData.append("email", email);
         formData.append("password", password);
 
-        // Call our server action
         const result = await registerAction(formData);
-        
+
         if (!result.success) {
             setError(result.error || "Failed to register.");
             return;
         }
 
-        console.log('Registered user successfully via Backend.');
-
-        if (isValidAuthorNameParts(firstName, lastName)) {
-            router.push('/signup/author');
-            return;
+        // Set localStorage flags based on is_staff from the backend
+        if (result.isStaff) {
+            localStorage.setItem('isAuthorLoggedIn', 'true');
+            localStorage.setItem('authorName', `${firstName} ${lastName}`);
+        } else {
+            localStorage.setItem('isNormalUserLoggedIn', 'true');
+            localStorage.setItem('userEmail', email);
         }
+        window.dispatchEvent(new Event('auth-change'));
 
-        router.push('/profile');
+        // Staff/authors go to the author profile page, others to their profile
+        if (result.isStaff) {
+            router.push('/signup/author');
+        } else {
+            router.push('/profile');
+        }
     };
 
     return (

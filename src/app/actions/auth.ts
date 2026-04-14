@@ -14,18 +14,18 @@ export async function loginAction(formData: FormData) {
       body: JSON.stringify({ email, password }),
     });
 
-    // dj-rest-auth returns `{ key: "..." }` for Token auth
     const token = response.key || response.token || response.access;
-    
+
     if (token) {
       const cookieStore = await cookies();
       cookieStore.set("auth_token", token, {
         httpOnly: true,
         secure: process.env.NODE_ENV === "production",
-        maxAge: 60 * 60 * 24 * 7, // 1 week
+        maxAge: 60 * 60 * 24 * 7,
         path: "/",
       });
-      return { success: true };
+      // Return is_staff so the client can set the right localStorage flags
+      return { success: true, isStaff: response.is_staff === true };
     } else {
       return { success: false, error: "Invalid credentials" };
     }
@@ -41,36 +41,34 @@ export async function registerAction(formData: FormData) {
   const lastName = formData.get("lastName") as string;
 
   try {
-    // dj-rest-auth expects password1 + password2 (confirmation), not just password
     const response = await fetchApi("/api/auth/register/", {
       method: "POST",
       body: JSON.stringify({
         email,
         password1: password,
-        password2: password, // same value since the frontend already validates they match
+        password2: password,
         first_name: firstName,
         last_name: lastName,
       }),
     });
 
-    // dj-rest-auth returns { key: "..." } after registration
     const token = response.key || response.token || response.access;
     if (token) {
       const cookieStore = await cookies();
       cookieStore.set("auth_token", token, {
         httpOnly: true,
         secure: process.env.NODE_ENV === "production",
-        maxAge: 60 * 60 * 24 * 7, // 1 week
+        maxAge: 60 * 60 * 24 * 7,
         path: "/",
       });
     }
 
-    return { success: true };
+    // Return is_staff so the client can set the right localStorage flags
+    return { success: true, isStaff: response.is_staff === true };
   } catch (error: any) {
     return { success: false, error: error.message || "An error occurred during registration." };
   }
 }
-
 
 export async function logoutAction() {
   const cookieStore = await cookies();
