@@ -14,11 +14,10 @@ export async function loginAction(formData: FormData) {
       body: JSON.stringify({ email, password }),
     });
 
-    // Assume Django returns `{ token: "..." }` or `{ access: "..." }`
-    const token = response.token || response.access;
+    // dj-rest-auth returns `{ key: "..." }` for Token auth
+    const token = response.key || response.token || response.access;
     
     if (token) {
-      // Store token in HttpOnly cookie
       const cookieStore = await cookies();
       cookieStore.set("auth_token", token, {
         httpOnly: true,
@@ -42,13 +41,20 @@ export async function registerAction(formData: FormData) {
   const lastName = formData.get("lastName") as string;
 
   try {
+    // dj-rest-auth expects password1 + password2 (confirmation), not just password
     const response = await fetchApi("/api/auth/register/", {
       method: "POST",
-      body: JSON.stringify({ email, password, first_name: firstName, last_name: lastName }),
+      body: JSON.stringify({
+        email,
+        password1: password,
+        password2: password, // same value since the frontend already validates they match
+        first_name: firstName,
+        last_name: lastName,
+      }),
     });
 
-    // Optionally login the user immediately after registration
-    const token = response.token || response.access;
+    // dj-rest-auth returns { key: "..." } after registration
+    const token = response.key || response.token || response.access;
     if (token) {
       const cookieStore = await cookies();
       cookieStore.set("auth_token", token, {
@@ -64,6 +70,7 @@ export async function registerAction(formData: FormData) {
     return { success: false, error: error.message || "An error occurred during registration." };
   }
 }
+
 
 export async function logoutAction() {
   const cookieStore = await cookies();
