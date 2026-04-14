@@ -35,15 +35,37 @@ class MediaViewSet(viewsets.ModelViewSet):
 
 
 # Authorized author list — mirrors src/lib/authorizedAuthors.ts
+# TEMPORARY CHANGE AUTH
 VALID_AUTHORS = {
-    "samiksha gaherwar", "eshaan govil", "vivian huang", "emily yang",
-    "nachu annamalai", "anna xie", "chinmaya saran", "jonathan liu",
-    "nuhayd omar", "raj patel", "charles muehlberger", "vishrut thoutam",
-    "seojin moon", "emilio medina castellanos", "grace im", "matthew lee",
-    "aikhan jumashukurov", "reem belafkih", "isaac kang", "kevin park",
-    "ari gomez", "deeksha chaudhari", "monika mommsen", "jeevan sailesh",
-    "mathias nguyen-van-duong", "miguel pinero-jacome", "stephy zhang",
-    "lynn morris", "tyler pellek",
+    "samiksha gaherwar",
+    "eshaan govil",
+    "vivian huang",
+    "emily yang",
+    "nachu annamalai",
+    "anna xie",
+    "chinmaya saran",
+    "jonathan liu",
+    "nuhayd omar",
+    "raj patel",
+    "charles muehlberger",
+    "vishrut thoutam",
+    "seojin moon",
+    "emilio medina castellanos",
+    "grace im",
+    "matthew lee",
+    "aikhan jumashukurov",
+    "reem belafkih",
+    "isaac kang",
+    "kevin park",
+    "ari gomez",
+    "deeksha chaudhari",
+    "monika mommsen",
+    "jeevan sailesh",
+    "mathias nguyen-van-duong",
+    "miguel pinero-jacome",
+    "stephy zhang",
+    "lynn morris",
+    "tyler pellek",
 }
 
 
@@ -58,13 +80,21 @@ def register_view(request):
     last_name = request.data.get("last_name", "").strip()
 
     if not email or not password1:
-        return Response({"error": "Email and password are required."}, status=status.HTTP_400_BAD_REQUEST)
+        return Response(
+            {"error": "Email and password are required."},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
 
     if password1 != password2:
-        return Response({"error": "Passwords do not match."}, status=status.HTTP_400_BAD_REQUEST)
+        return Response(
+            {"error": "Passwords do not match."}, status=status.HTTP_400_BAD_REQUEST
+        )
 
     if User.objects.filter(email=email).exists():
-        return Response({"error": "A user with this email already exists."}, status=status.HTTP_400_BAD_REQUEST)
+        return Response(
+            {"error": "A user with this email already exists."},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
 
     # Check if this person is in the authorized author list
     full_name = f"{first_name} {last_name}".strip().lower()
@@ -79,7 +109,9 @@ def register_view(request):
         is_staff=is_staff,
     )
     token, _ = Token.objects.get_or_create(user=user)
-    return Response({"key": token.key, "is_staff": is_staff}, status=status.HTTP_201_CREATED)
+    return Response(
+        {"key": token.key, "is_staff": is_staff}, status=status.HTTP_201_CREATED
+    )
 
 
 @api_view(["POST"])
@@ -92,7 +124,11 @@ def login_view(request):
     # Authenticate using username=email since we store email as username
     user = authenticate(username=email, password=password)
     if not user:
-        return Response({"error": "Invalid credentials."}, status=status.HTTP_400_BAD_REQUEST)
+        return Response(
+            {"error": "Invalid credentials."}, status=status.HTTP_400_BAD_REQUEST
+        )
 
     token, _ = Token.objects.get_or_create(user=user)
-    return Response({"key": token.key, "is_staff": user.is_staff}, status=status.HTTP_200_OK)
+    return Response(
+        {"key": token.key, "is_staff": user.is_staff}, status=status.HTTP_200_OK
+    )

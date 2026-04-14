@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from 'react';
-import { createAuthor } from '@/lib/api';
+import { createAuthorAction } from '@/app/actions/author';
 
 export default function AuthorForm() {
     const [formData, setFormData] = useState({
@@ -43,7 +43,11 @@ export default function AuthorForm() {
                 website_url: formData.website_url || null,
             };
 
-            const data = await createAuthor(payload);
+            const result = await createAuthorAction(payload);
+            if (!result.success) {
+                setError(result.error || 'Failed to create author profile.');
+                return;
+            }
             setSuccessMessage(`Author profile created successfully!`);
             // Reset form optionally
             setFormData({

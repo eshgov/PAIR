@@ -1,39 +1,40 @@
 "use server";
 
 import { getToken } from "./auth";
-import { fetchApi, API_BASE_URL } from "@/lib/apiClient";
+import { API_BASE_URL } from "@/lib/apiClient";
 
-export async function createAuthorAction(formData: FormData) {
+export async function createAuthorAction(data: {
+  full_name: string;
+  email: string;
+  affiliation: string;
+  class_year: number | null;
+  major_department: string;
+  bio: string;
+  linkedin_url: string | null;
+  twitter_url: string | null;
+  website_url: string | null;
+}) {
   const token = await getToken();
-  if (!token) return { success: false, error: "Unauthorized" };
-
-  const payload = {
-    affiliation: formData.get("affiliation") as string,
-    class_year: formData.get("classYear") as string,
-    major_department: formData.get("major") as string,
-    bio: formData.get("bio") as string,
-    linkedin_url: formData.get("linkedin") as string || null,
-    twitter_url: formData.get("x") as string || null,
-    website_url: formData.get("website") as string || null,
-  };
+  if (!token) return { success: false, error: "Not logged in." };
 
   try {
     const response = await fetch(`${API_BASE_URL}/api/authors/`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "Authorization": `Bearer ${token}`
+        "Authorization": `Token ${token}`,
       },
-      body: JSON.stringify(payload),
+      body: JSON.stringify(data),
     });
 
     if (!response.ok) {
-      const err = await response.text();
-      return { success: false, error: err };
+      const err = await response.json().catch(() => ({}));
+      return { success: false, error: JSON.stringify(err) };
     }
 
     return { success: true };
-  } catch (error: any) {
-    return { success: false, error: error.message || "Failed to create author profile" };
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : "Failed to create author profile.";
+    return { success: false, error: message };
   }
 }
