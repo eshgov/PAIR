@@ -37,11 +37,6 @@ INSTALLED_APPS = [
     "rest_framework",
     "rest_framework.authtoken",
     "corsheaders",
-    "django.contrib.sites",
-    "allauth",
-    "allauth.account",
-    "dj_rest_auth",
-    "dj_rest_auth.registration",
 ]
 
 REST_FRAMEWORK = {
@@ -62,7 +57,6 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
-    "allauth.account.middleware.AccountMiddleware",
 ]
 
 ROOT_URLCONF = "journal.urls"
@@ -133,10 +127,6 @@ USE_TZ = True
 
 STATIC_URL = "static/"
 
-# Auth and Registration Settings
-SITE_ID = 1
-ACCOUNT_EMAIL_VERIFICATION = "none"
-ACCOUNT_EMAIL_REQUIRED = True
-ACCOUNT_AUTHENTICATION_METHOD = "email"
-ACCOUNT_USERNAME_REQUIRED = False
+# Prevent crashes from email sending attempts
+EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
 

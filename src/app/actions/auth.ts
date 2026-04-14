@@ -14,19 +14,18 @@ export async function loginAction(formData: FormData) {
       body: JSON.stringify({ email, password }),
     });
 
-    // Assume Django returns `{ token: "..." }` or `{ access: "..." }`
-    const token = response.token || response.access;
-    
+    const token = response.key || response.token || response.access;
+
     if (token) {
-      // Store token in HttpOnly cookie
       const cookieStore = await cookies();
       cookieStore.set("auth_token", token, {
         httpOnly: true,
         secure: process.env.NODE_ENV === "production",
-        maxAge: 60 * 60 * 24 * 7, // 1 week
+        maxAge: 60 * 60 * 24 * 7,
         path: "/",
       });
-      return { success: true };
+      // Return is_staff so the client can set the right localStorage flags
+      return { success: true, isStaff: response.is_staff === true };
     } else {
       return { success: false, error: "Invalid credentials" };
     }
@@ -44,22 +43,28 @@ export async function registerAction(formData: FormData) {
   try {
     const response = await fetchApi("/api/auth/register/", {
       method: "POST",
-      body: JSON.stringify({ email, password, first_name: firstName, last_name: lastName }),
+      body: JSON.stringify({
+        email,
+        password1: password,
+        password2: password,
+        first_name: firstName,
+        last_name: lastName,
+      }),
     });
 
-    // Optionally login the user immediately after registration
-    const token = response.token || response.access;
+    const token = response.key || response.token || response.access;
     if (token) {
       const cookieStore = await cookies();
       cookieStore.set("auth_token", token, {
         httpOnly: true,
         secure: process.env.NODE_ENV === "production",
-        maxAge: 60 * 60 * 24 * 7, // 1 week
+        maxAge: 60 * 60 * 24 * 7,
         path: "/",
       });
     }
 
-    return { success: true };
+    // Return is_staff so the client can set the right localStorage flags
+    return { success: true, isStaff: response.is_staff === true };
   } catch (error: any) {
     return { success: false, error: error.message || "An error occurred during registration." };
   }

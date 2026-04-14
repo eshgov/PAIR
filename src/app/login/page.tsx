@@ -23,10 +23,10 @@ export default function Login() {
         e.preventDefault();
         setError('');
 
+        // Hardcoded admin bypass (local only)
         if (email === 'admin' && password === 'princetonaireview') {
             localStorage.setItem('isAdmin', 'true');
             window.dispatchEvent(new Event('auth-change'));
-            alert('Admin login successful!');
             router.push('/admin/upload-pdf');
             return;
         }
@@ -42,26 +42,17 @@ export default function Login() {
             return;
         }
 
-        // Keep local storage logic for the UI if it relies on it currently
-        if (email === 'admin') {
-            localStorage.setItem('isAdmin', 'true');
-            window.dispatchEvent(new Event('auth-change'));
-            router.push('/admin/upload-pdf');
-            return;
-        }
-
-        if (isValidAuthor(email)) {
+        // Use is_staff from backend to determine UI role
+        if (result.isStaff) {
             localStorage.setItem('isAuthorLoggedIn', 'true');
-            localStorage.setItem('authorName', email);
-            window.dispatchEvent(new Event('auth-change'));
-            router.push('/submit');
-            return;
+            localStorage.removeItem('isNormalUserLoggedIn');
+        } else {
+            localStorage.setItem('isNormalUserLoggedIn', 'true');
+            localStorage.setItem('userEmail', email);
+            localStorage.removeItem('isAuthorLoggedIn');
         }
-
-        localStorage.setItem('isNormalUserLoggedIn', 'true');
-        localStorage.setItem('userEmail', email);
         window.dispatchEvent(new Event('auth-change'));
-        router.push('/');
+        router.push(result.isStaff ? '/submit' : '/');
     };
 
     return (
