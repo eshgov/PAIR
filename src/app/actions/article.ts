@@ -25,7 +25,7 @@ export async function submitArticleAction(formData: FormData) {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "Authorization": `Bearer ${token}`
+        "Authorization": `Token ${token}`
       },
       body: JSON.stringify(articlePayload),
     });
@@ -38,10 +38,27 @@ export async function submitArticleAction(formData: FormData) {
     const articleData = await articleResponse.json();
     const articleId = articleData.id || articleData.pk; // assuming id is returned
 
-    // 2. Link Primary Author (Simulated for now, assumes author ID is linked to current token)
-    // In a real scenario we might need to lookup the author by the string typed, or use the logged in user's author ID.
-    // For now we submit the link to backend
-    // POST /api/article-authors/
+    // 2. Link Authors
+    const primaryAuthorId = formData.get("primaryAuthorId") as string;
+    const coAuthorIds = formData.getAll("coAuthorIds") as string[];
+
+    // Link Primary
+    if (primaryAuthorId) {
+      await fetch(`${API_BASE_URL}/api/article-authors/`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "Authorization": `Token ${token}` },
+        body: JSON.stringify({ article: articleId, author: parseInt(primaryAuthorId), is_primary: true }),
+      });
+    }
+
+    // Link Co-Authors
+    for (const coId of coAuthorIds) {
+      await fetch(`${API_BASE_URL}/api/article-authors/`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "Authorization": `Token ${token}` },
+        body: JSON.stringify({ article: articleId, author: parseInt(coId), is_primary: false }),
+      });
+    }
     
     // 3. Media Upload (Cover Image)
     const coverImage = formData.get("coverImage") as File;
@@ -57,7 +74,7 @@ export async function submitArticleAction(formData: FormData) {
       await fetch(`${API_BASE_URL}/api/media/`, {
         method: "POST",
         headers: {
-          "Authorization": `Bearer ${token}`
+          "Authorization": `Token ${token}`
           // Let fetch set the multipart/form-data boundary automatically
         },
         body: mediaForm,

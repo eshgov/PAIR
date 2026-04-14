@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useRef } from "react";
-import { createArticle, fetchWithAuth } from "@/lib/api";
+import { submitArticleAction } from "@/app/actions/article";
 import { API_BASE_URL } from "@/lib/apiClient";
 
 interface Author {
@@ -39,6 +39,12 @@ export default function ArticleForm() {
   const [showSuggestions, setShowSuggestions] = useState(false);
   const authorRef = useRef<HTMLDivElement>(null);
 
+  // Co-Author autocomplete
+  const [selectedCoAuthors, setSelectedCoAuthors] = useState<Author[]>([]);
+  const [coAuthorQuery, setCoAuthorQuery] = useState('');
+  const [showCoAuthorSuggestions, setShowCoAuthorSuggestions] = useState(false);
+  const coAuthorRef = useRef<HTMLDivElement>(null);
+
   useEffect(() => {
     fetch(`${API_BASE_URL}/api/authors/`)
       .then(res => res.json())
@@ -55,6 +61,9 @@ export default function ArticleForm() {
       if (authorRef.current && !authorRef.current.contains(e.target as Node)) {
         setShowSuggestions(false);
       }
+      if (coAuthorRef.current && !coAuthorRef.current.contains(e.target as Node)) {
+        setShowCoAuthorSuggestions(false);
+      }
     };
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
@@ -62,6 +71,14 @@ export default function ArticleForm() {
 
   const authorSuggestions = authorQuery.length > 0
     ? allAuthors.filter(a => a.full_name.toLowerCase().includes(authorQuery.toLowerCase()))
+    : [];
+
+  const coAuthorSuggestions = coAuthorQuery.length > 0
+    ? allAuthors.filter(a => 
+        a.full_name.toLowerCase().includes(coAuthorQuery.toLowerCase()) && 
+        a.id !== selectedAuthorId && 
+        !selectedCoAuthors.find(ca => ca.id === a.id)
+      )
     : [];
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
@@ -76,52 +93,56 @@ export default function ArticleForm() {
     setSuccessMessage(null);
 
     try {
-      // 1. Submit Article Metadata using the API client
-      const articlePayload = {
-        title: formData.title,
-        subtitle: formData.subtitle,
-        section: formData.section.toLowerCase(),
-        tags: formData.tags,
-        abstract: formData.abstract,
-        estimated_read_time: parseInt(formData.readTime) || 5,
-        publication_preference: formData.publicationPreference.toLowerCase().replace(' ', '_'),
-        body: formData.body,
-        acknowledgements: formData.acknowledgements,
-      };
+      const fd = new FormData();
+      fd.append("title", formData.title);
+      fd.append("subtitle", formData.subtitle);
+      fd.append("section", formData.section);
+      fd.append("tags", formData.tags);
+      fd.append("abstract", formData.abstract);
+      fd.append("readTime", formData.readTime);
+      fd.append("publicationPreference", formData.publicationPreference);
+      fd.append("body", formData.body);
+      fd.append("acknowledgements", formData.acknowledgements);
+      
+      // Pass the primary author ID for linkage
+      if (selectedAuthorId) {
+        fd.append("primaryAuthorId", selectedAuthorId.toString());
+      }
 
-      const articleData = await createArticle(articlePayload);
-      const articleId = articleData?.id || articleData?.pk;
+      // Pass co-author IDs (formData allows appending multiple of the same key)
+      selectedCoAuthors.forEach(ca => {
+        fd.append("coAuthorIds", ca.id.toString());
+      });
 
-      // 2. Handle Media Upload if a cover image is provided
+      // Media fields
       const fileInput = document.querySelector('input[name="coverImage"]') as HTMLInputElement;
-      if (fileInput && fileInput.files && fileInput.files[0] && articleId) {
-        const mediaForm = new FormData();
-        mediaForm.append("article", articleId);
-        mediaForm.append("file", fileInput.files[0]);
-        mediaForm.append("caption", formData.captions);
-        mediaForm.append("alt_text", formData.altText);
-        mediaForm.append("credit", formData.mediaCredits);
-        mediaForm.append("is_cover", "true");
+      if (fileInput && fileInput.files && fileInput.files[0]) {
+        fd.append("coverImage", fileInput.files[0]);
+        fd.append("captions", formData.captions);
+        fd.append("altText", formData.altText);
+        fd.append("mediaCredits", formData.mediaCredits);
+      }
 
-        // Use fetch directly for FormData to avoid default application/json header from fetchWithAuth
-        const token = process.env.NEXT_PUBLIC_API_TOKEN || '';
-        await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL || 'https://pair-dj8z.onrender.com'}/api/media/`, {
-          method: "POST",
-          headers: {
-            "Authorization": `Token ${token}`
-            // Note: Content-Type is intentionally omitted for FormData so the browser sets the boundary correctly
-          },
-          body: mediaForm,
-        });
+      const result = await submitArticleAction(fd);
+
+      if (!result.success) {
+        setError(result.error || "Failed to submit article");
+        setIsSubmitting(false);
+        return;
       }
 
       setSuccessMessage("Article submitted successfully!");
       
       // Optionally reset form
+      // Optionally reset form
       setFormData({
         primaryAuthor: "", coAuthors: "", title: "", subtitle: "", section: "Technical", tags: "", abstract: "",
         readTime: "", publicationPreference: "Flexible", body: "", captions: "", altText: "", mediaCredits: "", acknowledgements: "",
       });
+      setSelectedAuthorId(null);
+      setAuthorQuery('');
+      setSelectedCoAuthors([]);
+      setCoAuthorQuery('');
       if (fileInput) fileInput.value = "";
       
     } catch (err: any) {
@@ -191,9 +212,55 @@ export default function ArticleForm() {
                 </div>
               )}
             </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Co-authors</label>
-              <textarea name="coAuthors" value={formData.coAuthors} onChange={handleChange} placeholder="Internal tags/names or External: Name + Class Year + Email" rows={2} className="block w-full rounded-md p-3 border border-gray-300" />
+            
+            <div ref={coAuthorRef} className="relative">
+              <label className="block text-sm font-medium text-gray-700 mb-1">Registered Co-Authors</label>
+              <div className="flex flex-wrap gap-2 mb-2">
+                {selectedCoAuthors.map(ca => (
+                  <span key={ca.id} className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-indigo-100 text-indigo-800">
+                    {ca.full_name}
+                    <button type="button" onClick={() => setSelectedCoAuthors(prev => prev.filter(p => p.id !== ca.id))} className="ml-2 text-indigo-500 hover:text-indigo-900 focus:outline-none">
+                      &times;
+                    </button>
+                  </span>
+                ))}
+              </div>
+              <input
+                type="text"
+                placeholder="Search to add co-authors..."
+                value={coAuthorQuery}
+                onChange={e => { setCoAuthorQuery(e.target.value); setShowCoAuthorSuggestions(true); }}
+                onFocus={() => setShowCoAuthorSuggestions(true)}
+                className="block w-full rounded-md p-3 border border-gray-300"
+              />
+              {showCoAuthorSuggestions && coAuthorSuggestions.length > 0 && (
+                <ul className="absolute z-10 w-full bg-white border border-gray-200 rounded-md shadow-lg mt-1 max-h-48 overflow-y-auto">
+                  {coAuthorSuggestions.map(author => (
+                    <li
+                      key={author.id}
+                      onMouseDown={() => {
+                        setSelectedCoAuthors(prev => [...prev, author]);
+                        setCoAuthorQuery('');
+                        setShowCoAuthorSuggestions(false);
+                      }}
+                      className="px-4 py-2 hover:bg-gray-100 cursor-pointer text-sm"
+                    >
+                      <span className="font-medium">{author.full_name}</span>
+                      <span className="text-gray-400 ml-2">{author.email}</span>
+                    </li>
+                  ))}
+                </ul>
+              )}
+              {showCoAuthorSuggestions && coAuthorQuery.length > 0 && coAuthorSuggestions.length === 0 && (
+                <div className="absolute z-10 w-full bg-white border border-gray-200 rounded-md shadow-lg mt-1 px-4 py-2 text-sm text-gray-400">
+                  No authors found.
+                </div>
+              )}
+            </div>
+
+            <div className="md:col-span-2 mt-4">
+              <label className="block text-sm font-medium text-gray-700 mb-1">External/Unregistered Co-authors</label>
+              <textarea name="coAuthors" value={formData.coAuthors} onChange={handleChange} placeholder="If your co-author has not registered on this platform, type their Name + Class Year + Email here." rows={2} className="block w-full rounded-md p-3 border border-gray-300 bg-gray-50 text-gray-700" />
             </div>
           </div>
         </section>
