@@ -60,30 +60,32 @@ export async function submitArticleAction(formData: FormData) {
       });
     }
     
-    // 3. Media Upload (Cover Image)
-    const coverImage = formData.get("coverImage") as File;
-    if (coverImage && coverImage.size > 0) {
-      const mediaForm = new FormData();
-      mediaForm.append("article", articleId);
-      mediaForm.append("image_url", coverImage); // Maps nicely into the ImageField
-      mediaForm.append("caption", formData.get("captions") as string);
-      mediaForm.append("alt_text", formData.get("altText") as string);
-      mediaForm.append("credit", formData.get("mediaCredits") as string);
-      mediaForm.append("is_cover", "true");
+    // 3. Save Media URL (image was already uploaded to Supabase by the browser)
+    const coverImageUrl = formData.get("coverImageUrl") as string;
+    if (coverImageUrl) {
+      const mediaPayload = {
+        article: articleId,
+        image_url: coverImageUrl,
+        caption: formData.get("captions") as string,
+        alt_text: formData.get("altText") as string,
+        credit: formData.get("mediaCredits") as string,
+        is_cover: true,
+      };
 
       const mediaResponse = await fetch(`${API_BASE_URL}/api/media/`, {
         method: "POST",
         headers: {
+          "Content-Type": "application/json",
           "Authorization": `Token ${token}`,
         },
-        body: mediaForm,
+        body: JSON.stringify(mediaPayload),
       });
 
       if (!mediaResponse.ok) {
         const errText = await mediaResponse.text();
-        console.error("[media upload] FAILED", mediaResponse.status, errText);
+        console.error("[media save] FAILED", mediaResponse.status, errText);
       } else {
-        console.log("[media upload] OK for article", articleId);
+        console.log("[media save] OK for article", articleId);
       }
     }
 
@@ -92,3 +94,4 @@ export async function submitArticleAction(formData: FormData) {
     return { success: false, error: error.message || "Failed to submit article" };
   }
 }
+

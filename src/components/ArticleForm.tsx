@@ -93,6 +93,26 @@ export default function ArticleForm() {
     setSuccessMessage(null);
 
     try {
+      // Step 1: Upload image directly from browser to Supabase (bypasses Server Action body limits)
+      let coverImageUrl: string | null = null;
+      const fileInput = document.querySelector('input[name="coverImage"]') as HTMLInputElement;
+      if (fileInput && fileInput.files && fileInput.files[0]) {
+        const uploadForm = new FormData();
+        uploadForm.append("file", fileInput.files[0]);
+        uploadForm.append("folder", "article_media");
+
+        const uploadRes = await fetch("/api/upload", { method: "POST", body: uploadForm });
+        if (!uploadRes.ok) {
+          const err = await uploadRes.json().catch(() => ({}));
+          setError(`Image upload failed: ${err.error || uploadRes.status}`);
+          setIsSubmitting(false);
+          return;
+        }
+        const uploadData = await uploadRes.json();
+        coverImageUrl = uploadData.url;
+      }
+
+      // Step 2: Submit article text data + image URL (not the file) via server action
       const fd = new FormData();
       fd.append("title", formData.title);
       fd.append("subtitle", formData.subtitle);
@@ -103,27 +123,19 @@ export default function ArticleForm() {
       fd.append("publicationPreference", formData.publicationPreference);
       fd.append("body", formData.body);
       fd.append("acknowledgements", formData.acknowledgements);
-      
-      // Pass the primary author ID for linkage
-      if (selectedAuthorId) {
-        fd.append("primaryAuthorId", selectedAuthorId.toString());
-      }
 
-      // Pass co-author IDs (formData allows appending multiple of the same key)
-      selectedCoAuthors.forEach(ca => {
-        fd.append("coAuthorIds", ca.id.toString());
-      });
+      if (selectedAuthorId) fd.append("primaryAuthorId", selectedAuthorId.toString());
+      selectedCoAuthors.forEach(ca => fd.append("coAuthorIds", ca.id.toString()));
 
-      // Media fields
-      const fileInput = document.querySelector('input[name="coverImage"]') as HTMLInputElement;
-      if (fileInput && fileInput.files && fileInput.files[0]) {
-        fd.append("coverImage", fileInput.files[0]);
+      if (coverImageUrl) {
+        fd.append("coverImageUrl", coverImageUrl);
         fd.append("captions", formData.captions);
         fd.append("altText", formData.altText);
         fd.append("mediaCredits", formData.mediaCredits);
       }
 
       const result = await submitArticleAction(fd);
+
 
       if (!result.success) {
         setError(result.error || "Failed to submit article");
