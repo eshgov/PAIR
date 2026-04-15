@@ -89,6 +89,21 @@ export async function submitArticleAction(formData: FormData) {
       }
     }
 
+    // 4. Save Inline Image URLs as Media records
+    const inlineImageUrls = formData.getAll("inlineImageUrls") as string[];
+    for (let i = 0; i < inlineImageUrls.length; i++) {
+      await fetch(`${API_BASE_URL}/api/media/`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "Authorization": `Token ${token}` },
+        body: JSON.stringify({
+          article: articleId,
+          image_url: inlineImageUrls[i],
+          is_cover: false,
+          order: i + 1,
+        }),
+      });
+    }
+
     return { success: true, articleId: articleId };
   } catch (error: any) {
     return { success: false, error: error.message || "Failed to submit article" };

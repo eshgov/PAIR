@@ -31,6 +31,7 @@ export default function ArticleForm() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const [inlineImageUrls, setInlineImageUrls] = useState<string[]>([]);
 
   // Author autocomplete
   const [allAuthors, setAllAuthors] = useState<Author[]>([]);
@@ -112,6 +113,22 @@ export default function ArticleForm() {
         coverImageUrl = uploadData.url;
       }
 
+      // Step 1b: Upload inline images
+      const inlineInput = document.querySelector('input[name="inlineImages"]') as HTMLInputElement;
+      const uploadedInlineUrls: string[] = [];
+      if (inlineInput && inlineInput.files && inlineInput.files.length > 0) {
+        for (const file of Array.from(inlineInput.files)) {
+          const uploadForm = new FormData();
+          uploadForm.append("file", file);
+          uploadForm.append("folder", "inline_images");
+          const res = await fetch("/api/upload", { method: "POST", body: uploadForm });
+          if (res.ok) {
+            const data = await res.json();
+            uploadedInlineUrls.push(data.url);
+          }
+        }
+      }
+
       // Step 2: Submit article text data + image URL (not the file) via server action
       const fd = new FormData();
       fd.append("title", formData.title);
@@ -134,6 +151,9 @@ export default function ArticleForm() {
         fd.append("mediaCredits", formData.mediaCredits);
       }
 
+      // Pass inline image URLs to the server action
+      uploadedInlineUrls.forEach(url => fd.append("inlineImageUrls", url));
+
       const result = await submitArticleAction(fd);
 
 
@@ -144,9 +164,7 @@ export default function ArticleForm() {
       }
 
       setSuccessMessage("Article submitted successfully!");
-      
-      // Optionally reset form
-      // Optionally reset form
+      setInlineImageUrls(uploadedInlineUrls);
       setFormData({
         primaryAuthor: "", coAuthors: "", title: "", subtitle: "", section: "Technical", tags: "", abstract: "",
         readTime: "", publicationPreference: "Flexible", body: "", captions: "", altText: "", mediaCredits: "", acknowledgements: "",
@@ -180,10 +198,45 @@ export default function ArticleForm() {
         )}
         
         {successMessage && (
-            <div className="p-4 text-sm text-green-700 bg-green-50 rounded-md">
-                {successMessage}
+          <div className="p-5 bg-green-50 border border-green-200 rounded-lg space-y-4">
+            <div className="flex items-center gap-2">
+              <span className="text-green-600 text-xl">✓</span>
+              <p className="font-semibold text-green-800 text-base">{successMessage}</p>
             </div>
+
+            {inlineImageUrls.length > 0 && (
+              <div className="border-t border-green-200 pt-4 space-y-3">
+                <p className="font-semibold text-green-800">Your inline images were uploaded successfully!</p>
+                <p className="text-green-700 text-sm">
+                  Each image below has been saved to the cloud. To embed an image <strong>inside your article body</strong>,
+                  click <strong>Copy</strong> next to it, then paste that text wherever you want the image to appear in
+                  the Article Body field. The format <code className="bg-green-100 px-1 rounded">![Image 1](url)</code> is
+                  standard Markdown — the text inside <code className="bg-green-100 px-1 rounded">[]</code> is the image
+                  description, and the text inside <code className="bg-green-100 px-1 rounded">()</code> is the link to
+                  the image. You can change the description to anything you like.
+                </p>
+                <div className="space-y-2">
+                  {inlineImageUrls.map((url, i) => (
+                    <div key={i} className="bg-white border border-green-200 rounded-md p-3">
+                      <p className="text-xs text-green-600 font-medium mb-1">Image {i + 1} — click Copy, then paste into the Article Body</p>
+                      <div className="flex items-center gap-2">
+                        <code className="flex-1 bg-green-50 px-2 py-1 rounded text-xs break-all text-green-900">{`![Image ${i + 1}](${url})`}</code>
+                        <button
+                          type="button"
+                          onClick={() => navigator.clipboard.writeText(`![Image ${i + 1}](${url})`)}
+                          className="text-xs bg-green-600 text-white px-3 py-1.5 rounded hover:bg-green-700 shrink-0 font-medium"
+                        >
+                          Copy
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
         )}
+
 
         {/* 1. Author Selection */}
         <section className="space-y-6">
