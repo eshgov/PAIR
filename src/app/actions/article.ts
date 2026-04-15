@@ -71,14 +71,20 @@ export async function submitArticleAction(formData: FormData) {
       mediaForm.append("credit", formData.get("mediaCredits") as string);
       mediaForm.append("is_cover", "true");
 
-      await fetch(`${API_BASE_URL}/api/media/`, {
+      const mediaResponse = await fetch(`${API_BASE_URL}/api/media/`, {
         method: "POST",
         headers: {
-          "Authorization": `Token ${token}`
-          // Let fetch set the multipart/form-data boundary automatically
+          "Authorization": `Token ${token}`,
         },
         body: mediaForm,
       });
+
+      if (!mediaResponse.ok) {
+        const errText = await mediaResponse.text();
+        console.error("[media upload] FAILED", mediaResponse.status, errText);
+      } else {
+        console.log("[media upload] OK for article", articleId);
+      }
     }
 
     return { success: true, articleId: articleId };
