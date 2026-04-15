@@ -17,7 +17,7 @@ class Author(models.Model):
     class_year = models.IntegerField(null=True, blank=True)
     major_department = models.CharField(max_length=255, blank=True, default="")
     bio = models.TextField(blank=True, default="")
-    headshot_url = models.URLField(null=True, blank=True)
+    headshot_url = models.ImageField(upload_to="headshots/", null=True, blank=True, max_length=500)
     linkedin_url = models.URLField(null=True, blank=True)
     twitter_url = models.URLField(null=True, blank=True)
     website_url = models.URLField(null=True, blank=True)
@@ -89,7 +89,7 @@ class ArticleAuthor(models.Model):
 
 class Media(models.Model):
     article = models.ForeignKey(Article, on_delete=models.CASCADE, related_name="media")
-    image_url = models.URLField()
+    image_url = models.ImageField(upload_to="article_media/", max_length=500)
     caption = models.CharField(max_length=500, blank=True, default="")
     alt_text = models.CharField(max_length=500, blank=True, default="")
     credit = models.CharField(max_length=255, blank=True, default="")

@@ -65,7 +65,7 @@ export async function submitArticleAction(formData: FormData) {
     if (coverImage && coverImage.size > 0) {
       const mediaForm = new FormData();
       mediaForm.append("article", articleId);
-      mediaForm.append("file", coverImage); // The file itself, we assume Django accepts this 
+      mediaForm.append("image_url", coverImage); // Maps nicely into the ImageField
       mediaForm.append("caption", formData.get("captions") as string);
       mediaForm.append("alt_text", formData.get("altText") as string);
       mediaForm.append("credit", formData.get("mediaCredits") as string);

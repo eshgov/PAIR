@@ -37,6 +37,7 @@ INSTALLED_APPS = [
     "rest_framework",
     "rest_framework.authtoken",
     "corsheaders",
+    "storages",
 ]
 
 REST_FRAMEWORK = {
@@ -130,3 +131,26 @@ STATIC_URL = "static/"
 # Prevent crashes from email sending attempts
 EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
 
+DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+
+# ==========================================
+# SUPABASE S3 STORAGE CONFIGURATION
+# ==========================================
+AWS_ACCESS_KEY_ID = os.environ.get("AWS_ACCESS_KEY_ID")
+AWS_SECRET_ACCESS_KEY = os.environ.get("AWS_SECRET_ACCESS_KEY")
+AWS_STORAGE_BUCKET_NAME = os.environ.get("AWS_STORAGE_BUCKET_NAME")
+AWS_S3_ENDPOINT_URL = os.environ.get("AWS_S3_ENDPOINT_URL")
+AWS_S3_REGION_NAME = os.environ.get("AWS_S3_REGION_NAME", "eu-west-1")
+
+AWS_S3_FILE_OVERWRITE = False
+AWS_DEFAULT_ACL = "public-read"
+AWS_S3_SIGNATURE_VERSION = "s3v4"
+
+STORAGES = {
+    "default": {
+        "BACKEND": "storages.backends.s3boto3.S3Boto3Storage",
+    },
+    "staticfiles": {
+        "BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage",
+    },
+}
