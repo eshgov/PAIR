@@ -42,7 +42,7 @@ VALID_AUTHORS = {
     "eshaan govil",
     "vivian huang",
     "emily yang",
-    "nachu annamalai",
+    "nachammai annamalai",
     "anna xie",
     "chinmaya saran",
     "jonathan liu",
