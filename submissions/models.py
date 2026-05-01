@@ -29,12 +29,11 @@ class Author(models.Model):
 
 class Article(models.Model):
     SECTION_CHOICES = [
-        ("technical", "Technical"),
-        ("opinion", "Opinion"),
-        ("creative", "Creative"),
-        ("interview", "Interview"),
         ("humor", "Humor"),
-        ("spotlight", "Spotlight"),
+        ("news", "News"),
+        ("opinion", "Opinions/Commentary"),
+        ("spotlight", "Spotlights/Interviews"),
+        ("technical", "Technical"),
     ]
 
     PUBLICATION_CHOICES = [

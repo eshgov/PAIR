@@ -32,7 +32,6 @@ export default function Navbar() {
         { name: 'Opinion', href: '/opinion' },
         { name: 'Spotlight', href: '/spotlights' },
         { name: 'Humor', href: '/humor' },
-        { name: 'Games', href: '/games' },
     ];
 
     return (

@@ -345,7 +345,11 @@ export default function ArticleForm() {
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Section</label>
               <select name="section" value={formData.section} onChange={handleChange} className="block w-full rounded-md p-3 border border-gray-300 bg-white">
-                <option>Technical</option><option>Opinion</option><option>Creative</option><option>Interview</option><option>Humor</option><option>Spotlight</option><option>Other</option>
+                <option value="humor">Humor</option>
+                <option value="news">News</option>
+                <option value="opinion">Opinions/Commentary</option>
+                <option value="spotlight">Spotlights/Interviews</option>
+                <option value="technical">Technical</option>
               </select>
             </div>
             <div>
