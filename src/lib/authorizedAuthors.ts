@@ -41,6 +41,7 @@ export const VALID_AUTHORS: Author[] = [
     { firstName: "Stephy", lastName: "Zhang", fullName: "Stephy Zhang" },
     { firstName: "Lynn", lastName: "Morris", fullName: "Lynn Morris" },
     { firstName: "Tyler", lastName: "Pellek", fullName: "Tyler Pellek" },
+    { firstName: "Jackie", lastName: "Chan", fullName: "Jackie Chan" },
 ] as const;
 
 /**

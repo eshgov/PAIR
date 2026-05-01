@@ -67,6 +67,7 @@ VALID_AUTHORS = {
     "stephy zhang",
     "lynn morris",
     "tyler pellek",
+    "jackie chan",
 }
 
 
