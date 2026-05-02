@@ -23,16 +23,19 @@ class AuthorViewSet(viewsets.ModelViewSet):
 class ArticleViewSet(viewsets.ModelViewSet):
     queryset = Article.objects.all()
     serializer_class = ArticleSerializer
+    permission_classes = [IsAuthenticatedOrReadOnly]
 
 
 class ArticleAuthorViewSet(viewsets.ModelViewSet):
     queryset = ArticleAuthor.objects.all()
     serializer_class = ArticleAuthorSerializer
+    permission_classes = [IsAuthenticatedOrReadOnly]
 
 
 class MediaViewSet(viewsets.ModelViewSet):
     queryset = Media.objects.all()
     serializer_class = MediaSerializer
+    permission_classes = [IsAuthenticatedOrReadOnly]
 
 
 # Authorized author list — mirrors src/lib/authorizedAuthors.ts
