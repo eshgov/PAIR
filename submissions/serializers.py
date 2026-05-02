@@ -15,9 +15,16 @@ class MediaSerializer(serializers.ModelSerializer):
 
 
 class ArticleAuthorSerializer(serializers.ModelSerializer):
+    author_name = serializers.SerializerMethodField()
+
     class Meta:
         model = ArticleAuthor
         fields = "__all__"
+
+    def get_author_name(self, obj):
+        if obj.author:
+            return obj.author.full_name
+        return obj.external_name
 
 
 class ArticleSerializer(serializers.ModelSerializer):
