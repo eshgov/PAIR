@@ -111,6 +111,17 @@ export async function getArticles() {
 }
 
 /**
+ * Generate a URL-friendly slug from a title
+ */
+export function generateSlug(title: string) {
+  return title
+    .toLowerCase()
+    .replace(/[^\w\s-]/g, '') // Remove special characters
+    .replace(/[\s_-]+/g, '-') // Replace spaces and underscores with hyphens
+    .replace(/^-+|-+$/g, ''); // Trim hyphens from start and end
+}
+
+/**
  * Helper to map backend Article data to frontend ArticleCard props
  */
 export function mapArticle(article: any) {
@@ -121,6 +132,15 @@ export function mapArticle(article: any) {
   const coverMedia = article.media?.find((m: any) => m.is_cover) || article.media?.[0];
 
   const category = article.section ? article.section.charAt(0).toUpperCase() + article.section.slice(1) : 'Article';
+  const slug = generateSlug(article.title);
+  
+  // Map backend section to frontend route (e.g. 'spotlight' -> 'spotlights')
+  let routeSection = article.section?.toLowerCase() || 'technical';
+  if (routeSection === 'spotlight') {
+    routeSection = 'spotlights';
+  }
+
+  const url = `/${routeSection}/${slug}`;
 
   return {
     id: article.id,
@@ -129,6 +149,9 @@ export function mapArticle(article: any) {
     category: category,
     author: authorNames,
     imageUrl: coverMedia?.image_url,
+    slug,
+    url,
+    body: article.body,
   };
 }
 
