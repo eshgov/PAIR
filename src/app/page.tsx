@@ -1,55 +1,35 @@
-
 import ArticleCard from "@/components/ArticleCard";
+import { getArticles, mapArticle } from "@/lib/api";
 
-export default function Home() {
-  const featuredArticle = {
-    title: "The Future of Generative AI in Creative Industries",
-    excerpt: "How large language models and diffusion models are reshaping the landscape of art, literature, and design.",
-    category: "Spotlights",
-    author: "Alice Chang",
-  };
+export default async function Home() {
+  let rawArticles = [];
+  try {
+    rawArticles = await getArticles();
+  } catch (error) {
+    console.error("Failed to fetch articles:", error);
+  }
 
-  const secondaryArticles = [
-    {
-      title: "Understanding Transformer Architectures",
-      excerpt: "A deep dive into the mechanism that powers modern NLP.",
-      category: "Technical",
-      author: "Bob Smith",
-    },
-    {
-      title: "Why AI Won't Replace Comedians Just Yet",
-      excerpt: "An analysis of humor generation fails and successes.",
-      category: "Humor",
-      author: "Charlie Davis",
-    },
-    {
-      title: "Ethical Considerations of Autonomous Agents",
-      excerpt: "Navigating the moral landscape of AI decision making.",
-      category: "Opinion",
-      author: "Dana Lee",
-    },
-    {
-      title: "New Lab Opening at CS Building",
-      excerpt: "Princeton unveils state-of-the-art robotics facility.",
-      category: "News",
-      author: "Evan Wright",
-    },
-  ];
+  // Ensure it's an array
+  if (!Array.isArray(rawArticles)) {
+    rawArticles = [];
+  }
 
-  const opinionPieces = [
-    {
-      title: "We Need More Transparency in AI Training Data",
-      excerpt: "Open models are not enough if data remains closed.",
-      category: "Opinion",
-      author: "Fiona White",
-    },
-    {
-      title: "The Case for AI Literacy in High Schools",
-      excerpt: "Preparing the next generation for an AI-native world.",
-      category: "Opinion",
-      author: "George Green",
-    },
-  ];
+  const articles = rawArticles.map(mapArticle);
+
+  // Filter opinion articles
+  const opinionPieces = articles.filter(a => a.category.toLowerCase() === 'opinion').slice(0, 2);
+  const opinionIds = opinionPieces.map(a => a.id);
+
+  // Find a featured article (e.g. spotlight, or just the latest if none exists)
+  let featuredArticle = articles.find(a => a.category.toLowerCase() === 'spotlight' && !opinionIds.includes(a.id));
+  if (!featuredArticle && articles.length > 0) {
+    featuredArticle = articles.find(a => !opinionIds.includes(a.id));
+  }
+
+  const featuredId = featuredArticle ? featuredArticle.id : null;
+
+  // The rest for secondary articles
+  const secondaryArticles = articles.filter(a => a.id !== featuredId && !opinionIds.includes(a.id)).slice(0, 4);
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -58,10 +38,16 @@ export default function Home() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Main Featured Article */}
           <div className="lg:col-span-2">
-            <ArticleCard
-              {...featuredArticle}
-              className="h-full"
-            />
+            {featuredArticle ? (
+              <ArticleCard
+                {...featuredArticle}
+                className="h-full"
+              />
+            ) : (
+              <div className="flex items-center justify-center h-full bg-gray-100 rounded-md p-8 text-gray-500">
+                No featured articles found.
+              </div>
+            )}
           </div>
 
           {/* Opinion Sidebar */}
@@ -72,9 +58,11 @@ export default function Home() {
             >
               Opinion
             </h2>
-            {opinionPieces.map((article, index) => (
-              <ArticleCard key={index} {...article} />
-            ))}
+            {opinionPieces.length > 0 ? opinionPieces.map((article) => (
+              <ArticleCard key={article.id} {...article} />
+            )) : (
+              <p className="text-gray-500 text-sm">No opinion pieces found.</p>
+            )}
           </div>
         </div>
       </section>
@@ -87,11 +75,15 @@ export default function Home() {
         >
           Latest Stories
         </h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          {secondaryArticles.map((article, index) => (
-            <ArticleCard key={index} {...article} />
-          ))}
-        </div>
+        {secondaryArticles.length > 0 ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {secondaryArticles.map((article) => (
+              <ArticleCard key={article.id} {...article} />
+            ))}
+          </div>
+        ) : (
+          <p className="text-gray-500 text-sm">No latest stories found.</p>
+        )}
       </section>
     </div>
   );

@@ -11,14 +11,22 @@ interface ArticleCardProps {
     imageUrl?: string;
 }
 
-export default function ArticleCard({ title, excerpt, category, author, className = '' }: ArticleCardProps) {
+export default function ArticleCard({ title, excerpt, category, author, imageUrl, className = '' }: ArticleCardProps) {
     return (
         <div className={`flex flex-col group ${className}`}>
-            {/* Image placeholder */}
-            <div
-                className="aspect-video mb-4 w-full rounded-md"
-                style={{ backgroundColor: '#83c8f2', opacity: 0.4 }}
-            />
+            {/* Image or placeholder */}
+            {imageUrl ? (
+                <img
+                    src={imageUrl}
+                    alt={title}
+                    className="aspect-video mb-4 w-full rounded-md object-cover"
+                />
+            ) : (
+                <div
+                    className="aspect-video mb-4 w-full rounded-md"
+                    style={{ backgroundColor: '#83c8f2', opacity: 0.4 }}
+                />
+            )}
             {/* Category badge */}
             <div className="flex items-center space-x-2 mb-2">
                 <span
