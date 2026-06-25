@@ -48,7 +48,7 @@ export async function getAuthorByEmailAction(email: string) {
     console.log(`[DEBUG] Attempting to find author profile for email: '${email}'`);
     
     while (currentUrl) {
-      const response = await fetch(currentUrl, {
+      const response: Response = await fetch(currentUrl, {
         method: "GET",
         headers: {
           "Authorization": `Token ${token}`,
