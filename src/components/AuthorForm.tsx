@@ -253,12 +253,10 @@ export default function AuthorForm() {
                             type="email"
                             name="email"
                             required
-                            disabled={isEditing}
+                            disabled
                             value={formData.email}
                             onChange={handleChange}
-                            className={`w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-black focus:border-black ${
-                                isEditing ? 'bg-gray-100 text-gray-500 cursor-not-allowed' : ''
-                            }`}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-black focus:border-black bg-gray-100 text-gray-500 cursor-not-allowed"
                         />
                     </div>
                     <div>
