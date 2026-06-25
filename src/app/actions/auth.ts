@@ -80,3 +80,20 @@ export async function getToken() {
   const cookieStore = await cookies();
   return cookieStore.get("auth_token")?.value;
 }
+
+export async function getCurrentUserAction() {
+  const token = await getToken();
+  if (!token) return { success: false, error: "Not logged in." };
+
+  try {
+    const response = await fetchApi("/api/auth/me/", {
+      method: "GET",
+      headers: {
+        "Authorization": `Token ${token}`,
+      },
+    });
+    return { success: true, user: response };
+  } catch (error: any) {
+    return { success: false, error: error.message || "Failed to fetch user." };
+  }
+}

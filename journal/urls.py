@@ -31,4 +31,5 @@ urlpatterns = [
     path("api/", include(router.urls)),
     path("api/auth/register/", views.register_view),
     path("api/auth/login/", views.login_view),
+    path("api/auth/me/", views.me_view),
 ]

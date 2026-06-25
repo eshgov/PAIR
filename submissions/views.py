@@ -2,7 +2,7 @@ from django.contrib.auth import authenticate
 from django.contrib.auth.models import User
 from rest_framework import viewsets, status
 from rest_framework.decorators import api_view, permission_classes
-from rest_framework.permissions import AllowAny, IsAuthenticatedOrReadOnly
+from rest_framework.permissions import AllowAny, IsAuthenticatedOrReadOnly, IsAuthenticated
 from rest_framework.authtoken.models import Token
 from rest_framework.response import Response
 from .models import Author, Article, ArticleAuthor, Media
@@ -18,6 +18,13 @@ class AuthorViewSet(viewsets.ModelViewSet):
     queryset = Author.objects.all()
     serializer_class = AuthorSerializer
     permission_classes = [IsAuthenticatedOrReadOnly]
+
+    def get_queryset(self):
+        queryset = Author.objects.all()
+        email = self.request.query_params.get('email', None)
+        if email is not None:
+            queryset = queryset.filter(email__iexact=email)
+        return queryset
 
 
 class ArticleViewSet(viewsets.ModelViewSet):
@@ -136,3 +143,16 @@ def login_view(request):
     return Response(
         {"key": token.key, "is_staff": user.is_staff}, status=status.HTTP_200_OK
     )
+
+
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def me_view(request):
+    """Get the current authenticated user's details."""
+    return Response({
+        "email": request.user.email,
+        "first_name": request.user.first_name,
+        "last_name": request.user.last_name,
+        "is_staff": request.user.is_staff
+    })
+
