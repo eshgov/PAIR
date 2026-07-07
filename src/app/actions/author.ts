@@ -44,41 +44,30 @@ export async function getAuthorByEmailAction(email: string) {
   if (!token) return { success: false, error: "Not logged in." };
 
   try {
-    let currentUrl: string | null = `${API_BASE_URL}/api/authors/`;
+    const url = `${API_BASE_URL}/api/authors/?email=${encodeURIComponent(email)}`;
     console.log(`[DEBUG] Attempting to find author profile for email: '${email}'`);
     
-    while (currentUrl) {
-      const response: Response = await fetch(currentUrl, {
-        method: "GET",
-        headers: {
-          "Authorization": `Token ${token}`,
-        },
-      });
+    const response: Response = await fetch(url, {
+      method: "GET",
+      headers: {
+        "Authorization": `Token ${token}`,
+      },
+    });
 
-      if (!response.ok) {
-        const err = await response.json().catch(() => ({}));
-        return { success: false, error: JSON.stringify(err) };
-      }
-
-      const data = await response.json();
-      const list = Array.isArray(data) ? data : Array.isArray(data.results) ? data.results : [];
-      
-      const pageEmails = list.map((a: any) => a.email);
-      console.log(`[DEBUG] Checking against emails on this page:`, pageEmails);
-      
-      const author = list.find((a: any) => a.email.toLowerCase() === email.toLowerCase());
-      if (author) {
-        console.log(`[DEBUG] Found match for email: '${email}'`);
-        return { success: true, author };
-      }
-      
-      currentUrl = (!Array.isArray(data) && data.next) ? data.next : null;
-      if (currentUrl) {
-        console.log(`[DEBUG] Not found on this page, moving to next page: ${currentUrl}`);
-      }
+    if (!response.ok) {
+      const err = await response.json().catch(() => ({}));
+      return { success: false, error: JSON.stringify(err) };
     }
 
-    console.log(`[DEBUG] No profile found for email: '${email}' after checking all pages.`);
+    const data = await response.json();
+    const list = Array.isArray(data) ? data : Array.isArray(data.results) ? data.results : [];
+    
+    if (list.length > 0) {
+      console.log(`[DEBUG] Found match for email: '${email}'`);
+      return { success: true, author: list[0] };
+    }
+
+    console.log(`[DEBUG] No profile found for email: '${email}'`);
     return { success: true, author: null };
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : "Failed to fetch author profile.";
